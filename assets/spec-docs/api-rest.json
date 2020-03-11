@@ -1,0 +1,114 @@
+{
+  "provider": "Sample",
+  "name": "Sample Order API",
+  "description": "Order API",
+  "labels": {
+    "example": "SampleOrderAPI"
+  },
+  "api": {
+    "targetUrl": "https://localhost:8443",
+    "spec": {
+      "openapi": "3.0.0",
+      "info": {
+        "title": "Order API",
+        "version": "0.0.1"
+      },
+      "paths": {
+        "/orders": {
+          "post": {
+            "description": "Creates a new order.",
+            "tags": ["orders"],
+            "requestBody": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Order"
+                  }
+                }
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "Order created succesfully."
+              },
+              "400": {
+                "description": "Bad request."
+              },
+              "409": {
+                "description": "Order ID conflict."
+              },
+              "500": {
+                "description": "Internal server error."
+              }
+            }
+          },
+          "get": {
+            "description": "Retrieve all orders.",
+            "tags": ["orders"],
+            "responses": {
+              "200": {
+                "description": "Orders retrieved succesfully.",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/OrderList"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "Internal server error."
+              }
+            }
+          }
+        }
+      },
+      "components": {
+        "schemas": {
+          "Order": {
+            "type": "object",
+            "properties": {
+              "orderCode": {
+                "type": "string",
+                "example": "11854638GU110615ELIN54ZQ"
+              },
+              "description": {
+                "type": "string",
+                "example": "some order description"
+              },
+              "total": {
+                "type": "number",
+                "example": 1234.56
+              }
+            },
+            "required": ["orderCode", "description", "total"]
+          },
+          "OrderList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            }
+          }
+        }
+      }
+    },
+    "requestParameters": {
+      "queryParameters": {},
+      "headers": {
+        "Content-Type": ["application/json"]
+      }
+    },
+    "queryParameters": {
+      "query1": ["query1value"]
+    },
+    "headers": {
+      "header1": ["header1value"]
+    },
+    "credentials": {
+      "basic": {
+        "username": "user",
+        "password": "password"
+      }
+    }
+  }
+}

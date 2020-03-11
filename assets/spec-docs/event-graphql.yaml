@@ -1,0 +1,16 @@
+asyncapi: 2.0.0
+info:
+  title: Sample Order Created Event
+  version: 1.0.0
+  description: Order Created Event
+channels:
+  orderCreated/v1:
+    subscribe:
+      message:
+        payload:
+          type: object
+          example:
+            orderCode: "12345abc"
+          properties:
+            orderCode:
+              type: string

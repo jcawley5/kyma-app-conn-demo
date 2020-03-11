@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<link href="//unpkg.com/fundamental-styles@latest/dist/fundamental-styles.css" rel="stylesheet" />
+<html>
+  <script>
+    const callAction = async (url, txtValue, respDiv) => {
+      var myBody;
+      var busyIndicator = document.getElementsByClassName("fd-busy-indicator--m")[0];
+      busyIndicator.style.display = "block";
+      if (txtValue !== null) {
+        const txtValueData = document.getElementById(txtValue).value;
+        myBody = txtValueData;
+      }
+      const response = await fetch(url, {
+        method: "POST",
+        body: myBody, // string or object
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      const resp = await response.json();
+      busyIndicator.style.display = "none";
+      console.log(resp);
+      document.getElementById(respDiv).innerHTML = JSON.stringify(resp);
+    };
+  </script>
+  <style>
+    .pad10 {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+  </style>
+  <body>
+    <main class="fd-page">
+      <header>
+        <div class="fd-bar fd-bar--page fd-bar--header">
+          <div class="fd-bar__left">
+            <div class="fd-bar__element">
+              <h2>Kyma Application Connection Example</h2>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="fd-page__content">
+        <br />
+        <div class="fd-form-item">
+          <label class="fd-form-label" for="textarea-1">Enter Application Token Data:</label>
+          <textarea class="fd-textarea" id="tokenValue" cols="100" rows="2" name="tokenInfo"></textarea>
+        </div>
+        <br />
+        <div style="text-align: center">
+          <div class="fd-busy-indicator--m" aria-hidden="false" aria-label="Loading" style="display: none;">
+            <div class="fd-busy-indicator--circle-0"></div>
+            <div class="fd-busy-indicator--circle-1"></div>
+            <div class="fd-busy-indicator--circle-2"></div>
+          </div>
+        </div>
+
+        <div class="fd-container fd-container--fluid">
+          <div class="fd-panel">
+            <div class="fd-panel__body">
+              <div class="fd-col--3">
+                <button
+                  class="fd-button fd-button--emphasized"
+                  onclick="callAction('/api/callTokenURL', 'tokenValue', 'callTokenURLResp')"
+                >
+                  Call Token URL
+                </button>
+              </div>
+              <div class="fd-col--8">
+                <span>
+                  <b>About: </b> Depending on the Token Data entered, this app will determine if the connection is based
+                  on the rest or graphql api. If graphql the data is decoded. A call back to the system, kyma or the
+                  management plane, will be made to obtain connection information including the certificate subject
+                  required to create a certficate signing request.
+                </span>
+              </div>
+              <div class="fd-col--12 pad10">
+                <div><b>Response:</b><span id="callTokenURLResp"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fd-container fd-container--fluid">
+          <div class="fd-panel">
+            <div class="fd-panel__body">
+              <div class="fd-col--3">
+                <button
+                  class="fd-button"
+                  onclick="callAction('/api/createSecureConnection', null, 'secureConnectResp')"
+                >
+                  Create Connection
+                </button>
+              </div>
+              <div class="fd-col--8">
+                <div>
+                  <b>About: </b> Using the certificate Subject obtained in the previous call we can create a certificate
+                  signing request and then submit this back to the sytem. The response will provide a client certificate
+                  to be used to further communicate with the system.
+                </div>
+              </div>
+              <div class="fd-col--12 pad10">
+                <div><b>Response:</b><span id="secureConnectResp"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fd-container fd-container--fluid">
+          <div class="fd-panel">
+            <div class="fd-panel__body">
+              <div class="fd-col--3">
+                <button class="fd-button" onclick="callAction('/api/getAppInfo', null, 'appInfoResp')">
+                  Get App Info
+                </button>
+              </div>
+              <div class="fd-col--8">
+                <div>
+                  <b>About: </b> If using graphql we will call the viewer query to obtain the application id. If using
+                  the rest based we will call the infourl to obtain further details regarding the connection. These
+                  calls will use the tls connection established with the client certificate provided in the previous
+                  call.
+                </div>
+              </div>
+              <div class="fd-col--12 pad10">
+                <div><b>Response:</b><span id="appInfoResp"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fd-container fd-container--fluid">
+          <div class="fd-panel">
+            <div class="fd-panel__body">
+              <div class="fd-col--3">
+                <button class="fd-button" onclick="callAction('/api/sendAPISpec', 'hostURLInp', 'sendAPISpecResp')">
+                  Send API Spec
+                </button>
+                <input class="fd-input" type="text" id="hostURLInp" placeholder="Host URL" />
+              </div>
+              <div class="fd-col--8">
+                <div>
+                  <b>About: </b> This will submit a sample api specification to the system. The host url input field
+                  will be used to provide the system with the actual url of the running api, which is availabe on the
+                  same host as this app running on port 8443. The step Start Mock Server will intiated the server to
+                  test api capabilities.
+                </div>
+              </div>
+              <div class="fd-col--12 pad10">
+                <div><b>Response:</b><span id="sendAPISpecResp"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fd-container fd-container--fluid">
+          <div class="fd-panel">
+            <div class="fd-panel__body">
+              <div class="fd-col--3">
+                <button class="fd-button" onclick="callAction('/mock/startMockServer', null, 'startMockServerResp')">
+                  Start Mock Server
+                </button>
+              </div>
+              <div class="fd-col ">
+                <div><b>About: </b> Starts the mock server</div>
+              </div>
+              <div class="fd-col--12 pad10">
+                <div><b>Response:</b><span id="startMockServerResp"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fd-container fd-container--fluid">
+          <div class="fd-panel">
+            <div class="fd-panel__body">
+              <div class="fd-col--3">
+                <button class="fd-button" onclick="callAction('/api/sendEventSpec', null, 'sendEventSpecResp')">
+                  Send Event Spec
+                </button>
+              </div>
+              <div class="fd-col--8">
+                <div>
+                  <b>About: </b> This will submit a sample event specification to the system. Which can be used to test
+                  the eventing capabilities.
+                </div>
+              </div>
+              <div class="fd-col--12 pad10">
+                <div><b>Response:</b><span id="sendEventSpecResp"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fd-container fd-container--fluid">
+          <div class="fd-panel">
+            <div class="fd-panel__body">
+              <div class="fd-col--3">
+                <button
+                  class="fd-button"
+                  onclick="callAction('/mock/sendOrderCreatedEvent', 'orderCodeInp', 'sendOrderCreatedEventResp')"
+                >
+                  Send Order Event
+                </button>
+                <input class="fd-input" type="text" id="orderCodeInp" placeholder="orderCode" />
+              </div>
+              <div class="fd-col--8">
+                <div>
+                  <b>About: </b> This will submit an order to the event the event bus of the kyma system with the
+                  entered orderCode. This process will also add the relevant order to the mock server api.
+                </div>
+              </div>
+              <div class="fd-col--12 pad10">
+                <div><b>Response:</b><span id="sendOrderCreatedEventResp"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
