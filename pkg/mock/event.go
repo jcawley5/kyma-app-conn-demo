@@ -14,6 +14,7 @@ import (
 
 //SendOrderCreatedEvent -
 func SendOrderCreatedEvent(w http.ResponseWriter, r *http.Request) {
+	log.Println("SendOrderCreatedEvent")
 
 	client := connector.GetHTTPTLSClient()
 

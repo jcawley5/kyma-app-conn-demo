@@ -4,7 +4,7 @@
   <script>
     const callAction = async (url, txtValue, respDiv) => {
       var myBody;
-      var busyIndicator = document.getElementsByClassName("fd-busy-indicator--m")[0];
+      var busyIndicator = document.getElementsByClassName("divLoading")[0];
       busyIndicator.style.display = "block";
       if (txtValue !== null) {
         const txtValueData = document.getElementById(txtValue).value;
@@ -28,27 +28,57 @@
       padding-top: 10px;
       padding-bottom: 10px;
     }
+    .pad10sides {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .loadingSpinner{
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .divLoading {
+      display: none;
+      background: rgba(0, 0, 0, 0.1); 
+      width:      100%;
+      height:     100%; 
+      z-index:    10;
+      top:        0; 
+      left:       0; 
+      position:   fixed; 
+  }
+  .whiteText{
+    color: white;
+  }
+  .blueBar{
+    background-color: #354a5f;
+  }
   </style>
-  <body>
+  <body class="fd-has-margin-none">  
+    
     <main class="fd-page">
       <header>
-        <div class="fd-bar fd-bar--page fd-bar--header">
+        <div class="fd-bar fd-bar--page fd-bar--header blueBar">
           <div class="fd-bar__left">
-            <div class="fd-bar__element">
-              <h2>Kyma Application Connection Example</h2>
+            <div class="fd-bar__element whiteText">
+              <p class="fd-has-type-2 fd-has-font-weight-bold">Kyma Application Connection Example</p>
             </div>
           </div>
         </div>
       </header>
       <div class="fd-page__content">
         <br />
-        <div class="fd-form-item">
+        <div class="fd-form-item pad10sides">
           <label class="fd-form-label" for="textarea-1">Enter Application Token Data:</label>
           <textarea class="fd-textarea" id="tokenValue" cols="100" rows="2" name="tokenInfo"></textarea>
         </div>
         <br />
-        <div style="text-align: center">
-          <div class="fd-busy-indicator--m" aria-hidden="false" aria-label="Loading" style="display: none;">
+      
+        <!--  style="display: none;"-->
+        <div class="divLoading" id="loadingSpinnerDiv">
+         <div class="fd-busy-indicator--m loadingSpinner" aria-hidden="false" aria-label="Loading" > 
             <div class="fd-busy-indicator--circle-0"></div>
             <div class="fd-busy-indicator--circle-1"></div>
             <div class="fd-busy-indicator--circle-2"></div>
@@ -178,7 +208,7 @@
               <div class="fd-col--3">
                 <button
                   class="fd-button"
-                  onclick="callAction('/mock/sendOrderCreatedEvent', 'orderCodeInp', 'sendOrderCreatedEventResp')"
+                  onclick="callAction('/orders/sendOrderCreatedEvent', 'orderCodeInp', 'sendOrderCreatedEventResp')"
                 >
                   Send Order Event
                 </button>
@@ -196,6 +226,8 @@
             </div>
           </div>
         </div>
+
+
       </div>
     </main>
   </body>

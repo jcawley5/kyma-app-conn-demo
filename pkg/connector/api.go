@@ -168,8 +168,8 @@ func SendAPISpec(w http.ResponseWriter, r *http.Request) {
 	hostURL, err := ioutil.ReadAll(r.Body)
 
 	if err != nil || len(hostURL) == 0 {
-		log.Println("No hostURL provided... Setting to https://localhost:8443")
-		hostURL = []byte("https://localhost:8443")
+		log.Println("No hostURL provided... Setting to http://localhost:8000")
+		hostURL = []byte("http://localhost:8000")
 	}
 
 	if err != nil {
@@ -260,24 +260,24 @@ func (config *apiConfig) saveTLSCerts(clientCrt []byte, privateKey []byte) {
 func (config *apiConfig) setTLSClient() {
 
 	log.Println("Setting up TLS Client")
-	srvCert, err := tls.LoadX509KeyPair(config.AssetsDir+"/kymacerts/client.crt", config.AssetsDir+"/kymacerts/private.key")
+	keyPair, err := tls.LoadX509KeyPair(config.AssetsDir+"/kymacerts/client.crt", config.AssetsDir+"/kymacerts/private.key")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	caCert, err := ioutil.ReadFile(config.AssetsDir + "/kymacerts/client.crt")
+	clientCrt, err := ioutil.ReadFile(config.AssetsDir + "/kymacerts/client.crt")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
+	caCertPool.AppendCertsFromPEM(clientCrt)
 
 	config.HTTPTLSClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				RootCAs:            caCertPool,
-				Certificates:       []tls.Certificate{srvCert},
+				Certificates:       []tls.Certificate{keyPair},
 				InsecureSkipVerify: true,
 			},
 		},

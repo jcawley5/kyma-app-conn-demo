@@ -22,20 +22,17 @@ func (KymaConn *RestConnector) callTokenURL(oneTimeTokenURL string) ([]byte, err
 
 	resp, err := http.Get(oneTimeTokenURL)
 	if err != nil {
-		log.Fatalln(err)
 		return nil, err
 	}
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
 		return nil, err
 	}
 
 	err = json.Unmarshal(respBody, KymaConn)
 
 	if err != nil {
-		log.Fatalln(err)
 		return nil, err
 	}
 
@@ -92,7 +89,11 @@ func (KymaConn *RestConnector) getAppInfo(TLSClient *http.Client) ([]byte, error
 func (KymaConn *RestConnector) sendAPISpec(TLSClient *http.Client, APISpec []byte, hostURL []byte) ([]byte, error) {
 	log.Println("SendAPISpec via rest")
 
-	json, _ := sjson.Set(string(APISpec), "api.targetUrl", string(hostURL))
+	json, err := sjson.Set(string(APISpec), "api.targetUrl", string(hostURL))
+
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := TLSClient.Post(KymaConn.URLs.MetadataURL, "application/json", bytes.NewBuffer([]byte(json)))
 
@@ -101,12 +102,12 @@ func (KymaConn *RestConnector) sendAPISpec(TLSClient *http.Client, APISpec []byt
 	}
 
 	respBody, err := ioutil.ReadAll(resp.Body)
+	log.Println(string(respBody))
 	if err != nil {
 		return nil, err
 	}
 
 	return respBody, nil
-
 }
 
 //SendEventSpec -

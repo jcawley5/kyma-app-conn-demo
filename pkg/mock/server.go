@@ -3,12 +3,9 @@ package mock
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"time"
-
-	"github.com/gorilla/mux"
 )
 
 type order struct {
@@ -19,28 +16,13 @@ type order struct {
 
 var orders []order
 
-//StartMockServer -
-func StartMockServer() {
-
+func init() {
 	//add some dummy data...
 	orders = []order{order{"1231", "my first order", 22.2}, order{"fda2342", "my second order", 421.29}}
-
-	go func() {
-
-		router := mux.NewRouter().StrictSlash(true)
-
-		log.Println("starting mock server...")
-		router.HandleFunc("/orders", getOrders).Methods("GET")
-
-		router.HandleFunc("/orders", postOrders).Methods("POST")
-
-		// log.Fatal(http.ListenAndServeTLS(":8443", connector.GetAssetsDir()+"/kymacerts/client.crt", connector.GetAssetsDir()+"/kymacerts/private.key", router))
-		log.Fatal(http.ListenAndServe(":8001", router))
-	}()
-
 }
 
-func getOrders(w http.ResponseWriter, r *http.Request) {
+//GetOrders -
+func GetOrders(w http.ResponseWriter, r *http.Request) {
 
 	js, err := json.Marshal(orders)
 	if err != nil {
@@ -52,7 +34,8 @@ func getOrders(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func postOrders(w http.ResponseWriter, r *http.Request) {
+//PostOrders -
+func PostOrders(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	orderData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -85,6 +68,7 @@ func AddOrderFromEvent(orderCode string) {
 	var order order
 	order.OrderCode = orderCode
 	order.Description = "Order created from event"
-	order.Total = float64(rand.Intn(max-min+1) + min)
+	rand.Float64()
+	order.Total = float64(rand.Intn(max-min+1)+min) + .99
 	orders = append(orders, order)
 }
