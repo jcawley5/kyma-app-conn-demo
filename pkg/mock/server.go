@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/jcawley/kyma-app-connector/pkg/utils"
 )
 
 type order struct {
@@ -21,7 +20,7 @@ type order struct {
 var orders []order
 
 //StartMockServer -
-func StartMockServer(w http.ResponseWriter, r *http.Request) {
+func StartMockServer() {
 
 	//add some dummy data...
 	orders = []order{order{"1231", "my first order", 22.2}, order{"fda2342", "my second order", 421.29}}
@@ -36,10 +35,9 @@ func StartMockServer(w http.ResponseWriter, r *http.Request) {
 		router.HandleFunc("/orders", postOrders).Methods("POST")
 
 		// log.Fatal(http.ListenAndServeTLS(":8443", connector.GetAssetsDir()+"/kymacerts/client.crt", connector.GetAssetsDir()+"/kymacerts/private.key", router))
-		log.Fatal(http.ListenAndServe(":8443", router))
+		log.Fatal(http.ListenAndServe(":8001", router))
 	}()
 
-	utils.ReturnSuccess("Attempting to start mock server at https://localhost:8443/orders ...", w)
 }
 
 func getOrders(w http.ResponseWriter, r *http.Request) {

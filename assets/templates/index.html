@@ -141,31 +141,11 @@
               <div class="fd-col--8">
                 <div>
                   <b>About: </b> This will submit a sample api specification to the system. The host url input field
-                  will be used to provide the system with the actual url of the running api, which is availabe on the
-                  same host as this app running on port 8443. The step Start Mock Server will intiated the server to
-                  test api capabilities.
+                  will be used to provide the system with the url of the mock server included in this app.  If using the kyma deployment the url would be https://kac-mock.<cluster domain>
                 </div>
               </div>
               <div class="fd-col--12 pad10">
                 <div><b>Response:</b><span id="sendAPISpecResp"></span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="fd-container fd-container--fluid">
-          <div class="fd-panel">
-            <div class="fd-panel__body">
-              <div class="fd-col--3">
-                <button class="fd-button" onclick="callAction('/mock/startMockServer', null, 'startMockServerResp')">
-                  Start Mock Server
-                </button>
-              </div>
-              <div class="fd-col ">
-                <div><b>About: </b> Starts the mock server</div>
-              </div>
-              <div class="fd-col--12 pad10">
-                <div><b>Response:</b><span id="startMockServerResp"></span></div>
               </div>
             </div>
           </div>

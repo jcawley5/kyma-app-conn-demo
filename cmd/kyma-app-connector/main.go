@@ -21,7 +21,8 @@ func main() {
 	router.HandleFunc("/api/sendAPISpec", connector.SendAPISpec)
 	router.HandleFunc("/api/sendEventSpec", connector.SendEventSpec)
 	router.HandleFunc("/mock/sendOrderCreatedEvent", mock.SendOrderCreatedEvent)
-	router.HandleFunc("/mock/startMockServer", mock.StartMockServer)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
+
+	mock.StartMockServer()
 }
