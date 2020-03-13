@@ -21,9 +21,13 @@
       busyIndicator.style.display = "none";
       console.log(resp);
       document.getElementById(respDiv).innerHTML = JSON.stringify(resp);
-      if(respDiv === 'secureConnectResp' && resp.message === "Secure TLS Connection has been established"){
-        document.getElementById("connectionStatus").innerHTML =  "Connected";
+      if (respDiv === "secureConnectResp" && resp.message === "Secure TLS Connection has been established") {
+        document.getElementById("connectionStatus").innerHTML = "Connected";
       }
+    };
+
+    window.onload = () => {
+      document.getElementById("hostURLInp").value = window.location.origin;
     };
   </script>
   <style>
@@ -35,7 +39,7 @@
       padding-left: 10px;
       padding-right: 10px;
     }
-    .loadingSpinner{
+    .loadingSpinner {
       position: fixed;
       top: 50%;
       left: 50%;
@@ -44,23 +48,22 @@
 
     .divLoading {
       display: none;
-      background: rgba(0, 0, 0, 0.1); 
-      width:      100%;
-      height:     100%; 
-      z-index:    10;
-      top:        0; 
-      left:       0; 
-      position:   fixed; 
-  }
-  .whiteText{
-    color: white;
-  }
-  .blueBar{
-    background-color: #354a5f;
-  }
+      background: rgba(0, 0, 0, 0.1);
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      top: 0;
+      left: 0;
+      position: fixed;
+    }
+    .whiteText {
+      color: white;
+    }
+    .blueBar {
+      background-color: #354a5f;
+    }
   </style>
-  <body class="fd-has-margin-none">  
-    
+  <body class="fd-has-margin-none">
     <main class="fd-page">
       <header>
         <div class="fd-bar fd-bar--page fd-bar--header blueBar">
@@ -79,12 +82,13 @@
         </div>
         <br />
         <div class="pad10sides">
-          <span>Status: </span><span class="fd-info-label fd-info-label--accent-color-8" id="connectionStatus">{{.ConnectionStatus}}</span>
+          <span>Status: </span
+          ><span class="fd-info-label fd-info-label--accent-color-8" id="connectionStatus">{{.ConnectionStatus}}</span>
         </div>
         <br />
         <!--  style="display: none;"-->
         <div class="divLoading" id="loadingSpinnerDiv">
-         <div class="fd-busy-indicator--m loadingSpinner" aria-hidden="false" aria-label="Loading" > 
+          <div class="fd-busy-indicator--m loadingSpinner" aria-hidden="false" aria-label="Loading">
             <div class="fd-busy-indicator--circle-0"></div>
             <div class="fd-busy-indicator--circle-1"></div>
             <div class="fd-busy-indicator--circle-2"></div>
@@ -176,8 +180,9 @@
               </div>
               <div class="fd-col--8">
                 <div>
-                  <b>About: </b> This will submit a sample api specification to the system. The host url input field
-                  will be used to provide the system with the url of the mock server included in this app.  If using the kyma deployment the url would be https://kac-mock.<cluster domain>
+                  <b>About: </b> This will submit a sample api specification to the system. The input field will be used
+                  to provide the system with the url of the mock server included in this app available at
+                  https://kyma-app-conn-demo.&lt;cluster domain&gt;/orders if using the kyma deployment.
                 </div>
               </div>
               <div class="fd-col--12 pad10">
@@ -232,8 +237,6 @@
             </div>
           </div>
         </div>
-
-
       </div>
     </main>
   </body>
