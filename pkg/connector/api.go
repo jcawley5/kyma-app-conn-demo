@@ -27,35 +27,41 @@ type Connector interface {
 }
 
 type apiConfig struct {
-	AssetsDir           string
-	kc                  Connector
-	KymaClientCrtExists bool
-	HTTPTLSClient       *http.Client
-	ConnectionType      string
-	KeyLength           int
+	AssetsDir        string
+	kc               Connector
+	HTTPTLSClient    *http.Client
+	ConnectionType   string
+	ConnectionStatus string
+	KeyLength        int
 }
 
 var config *apiConfig
 
 const appTypeRest string = "REST"
 const appTypeGraphQL string = "GraphQL"
+const notConnected string = "Not Connected"
+const isConnected string = "Connected"
+
+//GetConnectionStatus -
+func GetConnectionStatus() string {
+
+	return config.ConnectionStatus
+
+}
 
 func init() {
-	log.Println("init called")
+	log.Println("init api called")
 
 	config = &apiConfig{}
-
+	config.ConnectionStatus = notConnected
 	config.setAssetsDir()
-	config.KymaClientCrtExists = false
-
-	log.Println(config.AssetsDir)
+	// _ = config.setTLSClient()
 }
 
 //will generate a rest or graphql connection based on the tokenData
-func initConnectionType(tokenData string) {
+func initConnectionType(appType string) {
 
-	_, err := base64.StdEncoding.DecodeString(tokenData)
-	if err == nil {
+	if appType == appTypeGraphQL {
 		config.kc = &GraphQLConnector{}
 		config.ConnectionType = appTypeGraphQL
 		config.KeyLength = 4096
@@ -65,6 +71,17 @@ func initConnectionType(tokenData string) {
 		config.KeyLength = 2048
 	}
 	log.Printf("Initialized connection of type: %s", config.ConnectionType)
+}
+
+func getConnTypeByTokenData(tokenData string) string {
+	var appType string
+	_, err := base64.StdEncoding.DecodeString(tokenData)
+	if err == nil {
+		appType = appTypeGraphQL
+	} else {
+		appType = appTypeRest
+	}
+	return appType
 }
 
 //CallTokenURL - STEP 1
@@ -80,7 +97,8 @@ func CallTokenURL(w http.ResponseWriter, r *http.Request) {
 
 	tokenDataStr := string(tokenData)
 
-	initConnectionType(tokenDataStr)
+	connType := getConnTypeByTokenData(tokenDataStr)
+	initConnectionType(connType)
 
 	resp, err := config.kc.callTokenURL(tokenDataStr)
 
@@ -121,12 +139,17 @@ func CreateSecureConnection(w http.ResponseWriter, r *http.Request) {
 		utils.ReturnError(err.Error(), w)
 	} else {
 		config.saveTLSCerts(clientCrt, KymaCerts.PrivateKey)
-		config.setTLSClient()
-		utils.ReturnSuccess("Secure TLS Connection has been established", w)
+		err := config.setTLSClient()
+		if err != nil {
+			utils.ReturnError("Could not establish a Secure TLS Connection", w)
+		} else {
+			utils.ReturnSuccess("Secure TLS Connection has been established", w)
+		}
+
 	}
 }
 
-//GetAppInfo - STEP 3 REST
+//GetAppInfo - STEP 3
 func GetAppInfo(w http.ResponseWriter, r *http.Request) {
 	log.Println("GetAppInfo")
 
@@ -140,9 +163,6 @@ func GetAppInfo(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.ReturnError(err.Error(), w)
 	} else {
-		if config.ConnectionType == appTypeRest {
-			ioutil.WriteFile(config.AssetsDir+"/kyma-info-url-details.json", resp, 0644)
-		}
 		utils.ReturnSuccess(string(resp), w)
 	}
 }
@@ -257,29 +277,41 @@ func (config *apiConfig) saveTLSCerts(clientCrt []byte, privateKey []byte) {
 }
 
 //Creates the TLS connection that all communication between the system will use
-func (config *apiConfig) setTLSClient() {
+func (config *apiConfig) setTLSClient() error {
 
-	log.Println("Setting up TLS Client")
+	log.Println("setTLSClient....")
+	log.Println(config.AssetsDir)
+	config.ConnectionStatus = notConnected
+
 	keyPair, err := tls.LoadX509KeyPair(config.AssetsDir+"/kymacerts/client.crt", config.AssetsDir+"/kymacerts/private.key")
 	if err != nil {
-		log.Fatal(err)
+		log.Println("setTLSClient: no keypair exists")
+		return err
 	}
 
 	clientCrt, err := ioutil.ReadFile(config.AssetsDir + "/kymacerts/client.crt")
 	if err != nil {
-		log.Fatal(err)
+		log.Println("setTLSClient: no clientCrt exists")
+		return err
 	}
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(clientCrt)
 
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true,
+		Certificates:       []tls.Certificate{keyPair},
+		RootCAs:            caCertPool,
+	}
+	tlsConfig.BuildNameToCertificate()
+
 	config.HTTPTLSClient = &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				RootCAs:            caCertPool,
-				Certificates:       []tls.Certificate{keyPair},
-				InsecureSkipVerify: true,
-			},
+			TLSClientConfig: tlsConfig,
 		},
 	}
+
+	log.Println("TLSClient has been set...")
+	config.ConnectionStatus = isConnected
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -89,6 +90,10 @@ func (KymaConn *RestConnector) getAppInfo(TLSClient *http.Client) ([]byte, error
 func (KymaConn *RestConnector) sendAPISpec(TLSClient *http.Client, APISpec []byte, hostURL []byte) ([]byte, error) {
 	log.Println("SendAPISpec via rest")
 
+	if KymaConn.URLs.MetadataURL == "" {
+		return nil, errors.New("no MetadataURL exists")
+	}
+
 	json, err := sjson.Set(string(APISpec), "api.targetUrl", string(hostURL))
 
 	if err != nil {
@@ -113,6 +118,10 @@ func (KymaConn *RestConnector) sendAPISpec(TLSClient *http.Client, APISpec []byt
 //SendEventSpec -
 func (KymaConn *RestConnector) sendEventSpec(TLSClient *http.Client, EventSpec []byte) ([]byte, error) {
 	log.Println("SendEventSpec via rest")
+
+	if KymaConn.URLs.MetadataURL == "" {
+		return nil, errors.New("no MetadataURL exists")
+	}
 
 	resp, err := TLSClient.Post(KymaConn.URLs.MetadataURL, "application/json", bytes.NewBuffer(EventSpec))
 

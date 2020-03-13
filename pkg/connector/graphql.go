@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -131,6 +132,10 @@ type specDefinitionResp struct {
 func (KymaConn *GraphQLConnector) sendEventSpec(TLSClient *http.Client, eventSpec []byte) ([]byte, error) {
 	log.Println("SendEventMetadata via graphql...")
 
+	if KymaConn.AppID.Viewer.ID == "" {
+		return nil, errors.New("no AppId exists")
+	}
+
 	client := graphql.NewClient(KymaConn.GraphQLAPIResp.Result.ManagementPlaneInfo.DirectorURL, graphql.WithHTTPClient(TLSClient))
 
 	req := graphql.NewRequest(`
@@ -171,6 +176,10 @@ func (KymaConn *GraphQLConnector) sendEventSpec(TLSClient *http.Client, eventSpe
 func (KymaConn *GraphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []byte, hostURL []byte) ([]byte, error) {
 
 	log.Println("SendAPIMetadata via graphql...")
+
+	if KymaConn.AppID.Viewer.ID == "" {
+		return nil, errors.New("no AppId exists")
+	}
 
 	client := graphql.NewClient(KymaConn.GraphQLAPIResp.Result.ManagementPlaneInfo.DirectorURL, graphql.WithHTTPClient(TLSClient))
 
