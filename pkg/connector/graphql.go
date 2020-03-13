@@ -94,7 +94,7 @@ func (KymaConn *GraphQLConnector) sendCSRToKyma(csr []byte) ([]byte, error) {
 	// log.Println("GraphQLAPI Result..............")
 	fmt.Printf("%+v\n", KymaConn)
 
-	return []byte(KymaConn.CSRConnectGraphQLResp.Result.ClientCertificate), nil
+	return []byte(KymaConn.CSRConnectGraphQLResp.Result.CertificateChain), nil
 }
 
 //GetAppInfo -

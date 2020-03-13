@@ -133,12 +133,12 @@ func CreateSecureConnection(w http.ResponseWriter, r *http.Request) {
 	}
 	ioutil.WriteFile(config.AssetsDir+"/kymacerts/cert.csr", KymaCerts.CSR, 0644)
 
-	clientCrt, err := config.kc.sendCSRToKyma(KymaCerts.CSR)
+	crtChain, err := config.kc.sendCSRToKyma(KymaCerts.CSR)
 
 	if err != nil {
 		utils.ReturnError(err.Error(), w)
 	} else {
-		config.saveTLSCerts(clientCrt, KymaCerts.PrivateKey)
+		config.saveTLSCerts(crtChain, KymaCerts.PrivateKey)
 		err := config.setTLSClient()
 		if err != nil {
 			utils.ReturnError("Could not establish a Secure TLS Connection", w)
@@ -262,17 +262,17 @@ func (config *apiConfig) setAssetsDir() {
 }
 
 //saves the TLS certs for later use
-func (config *apiConfig) saveTLSCerts(clientCrt []byte, privateKey []byte) {
+func (config *apiConfig) saveTLSCerts(crtChain []byte, privateKey []byte) {
 
 	ioutil.WriteFile(config.AssetsDir+"/kymacerts/private.key", privateKey, 0644)
 
-	decodedClientCrt, decodeErr := base64.StdEncoding.DecodeString(string(clientCrt))
+	decodedCrtChain, decodeErr := base64.StdEncoding.DecodeString(string(crtChain))
 	if decodeErr != nil {
-		log.Fatalf("something went wrong decoding the ClientCrt")
+		log.Fatalf("something went wrong decoding the crtChain")
 	}
-	clientDecodedBytes := []byte(string(decodedClientCrt))
+	crtDecodedBytes := []byte(string(decodedCrtChain))
 
-	ioutil.WriteFile(config.AssetsDir+"/kymacerts/client.crt", clientDecodedBytes, 0644)
+	ioutil.WriteFile(config.AssetsDir+"/kymacerts/crtChain.crt", crtDecodedBytes, 0644)
 
 }
 
@@ -283,20 +283,24 @@ func (config *apiConfig) setTLSClient() error {
 	log.Println(config.AssetsDir)
 	config.ConnectionStatus = notConnected
 
-	keyPair, err := tls.LoadX509KeyPair(config.AssetsDir+"/kymacerts/client.crt", config.AssetsDir+"/kymacerts/private.key")
+	keyPair, err := tls.LoadX509KeyPair(config.AssetsDir+"/kymacerts/crtChain.crt", config.AssetsDir+"/kymacerts/private.key")
 	if err != nil {
 		log.Println("setTLSClient: no keypair exists")
 		return err
 	}
 
-	clientCrt, err := ioutil.ReadFile(config.AssetsDir + "/kymacerts/client.crt")
+	crtChain, err := ioutil.ReadFile(config.AssetsDir + "/kymacerts/crtChain.crt")
 	if err != nil {
 		log.Println("setTLSClient: no clientCrt exists")
 		return err
 	}
 
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(clientCrt)
+	caCertPool, _ := x509.SystemCertPool()
+	if caCertPool == nil {
+		caCertPool = x509.NewCertPool()
+	}
+
+	caCertPool.AppendCertsFromPEM(crtChain)
 
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,

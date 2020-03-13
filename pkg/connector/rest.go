@@ -64,13 +64,14 @@ func (KymaConn *RestConnector) sendCSRToKyma(csr []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	return []byte(csrRespData.ClientCrt), nil
+	return []byte(csrRespData.Crt), nil
 }
 
 //GetAppInfo - STEP 3
 func (KymaConn *RestConnector) getAppInfo(TLSClient *http.Client) ([]byte, error) {
 	log.Println("GetAppInfo via rest")
 
+	//MetadataURL
 	resp, err := TLSClient.Get(KymaConn.API.InfoURL)
 	if err != nil {
 		return nil, err
