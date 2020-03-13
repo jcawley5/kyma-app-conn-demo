@@ -35,6 +35,26 @@ paths:
                 $ref: "#/components/schemas/OrderList"
         "500":
           description: Internal server error.
+  /orders/{orderCode}:
+    get:
+      parameters:
+        - in: path
+          name: orderCode
+          required: true
+          schema:
+            $ref: "#/components/schemas/OrderList"
+      description: Retrieve a single order.
+      tags:
+        - orders
+      responses:
+        "200":
+          description: Orders retrieved succesfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderList"
+        "500":
+          description: Internal server error.
 components:
   schemas:
     Order:
