@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kac-demo-ui
+  name: kac-demo
   labels:
-    app: kac-ui
+    app: kac-demo
 spec:
   ports:
     - name: http
@@ -11,70 +11,43 @@ spec:
       targetPort: 8000
       protocol: TCP
   selector:
-    app: kac-ui
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kac-mock
-  labels:
-    app: kac-ui
-spec:
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8001
-      protocol: TCP
-  selector:
-    app: kac-ui
+    app: kac-demo
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: kac-ui
+  name: kac-demo
   labels:
-    app: kac-ui
+    app: kac-demo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kac-ui
+      app: kac-demo
   template:
     metadata:
       # annotations:
       #   sidecar.istio.io/inject: "false"
       labels:
-        app: kac-ui
+        app: kac-demo
     spec:
       containers:
         # replace the repository URL with your own repository (e.g. {DockerID}/http-db-service:0.0.x for Docker Hub).
-        - image: jcawley5/kac-ui:latest
+        - image: jcawley5/kac-demo:latest
           imagePullPolicy: Always
-          name: kac-ui
+          name: kac-demo
           ports:
             - name: http
-              containerPort: 3000
+              containerPort: 8000
 ---
 apiVersion: gateway.kyma-project.io/v1alpha2
 kind: Api
 metadata:
-  name: kac-demo-ui
+  name: kac-demo
   labels:
-    app: kac-ui
+    app: kac-demo
 spec:
-  hostname: kac-demo-ui
+  hostname: kac-demo
   service:
-    name: kac-demo-ui
-    port: 80
----
-apiVersion: gateway.kyma-project.io/v1alpha2
-kind: Api
-metadata:
-  name: kac-mock
-  labels:
-    app: kac-ui
-spec:
-  hostname: kac-mock
-  service:
-    name: kac-mock
+    name: kac-demo
     port: 80
