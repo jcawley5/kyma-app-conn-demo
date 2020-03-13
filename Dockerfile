@@ -16,9 +16,14 @@ COPY cmd               ./cmd
 RUN ls /app/
 RUN CGO_ENABLED=0 GOOS=linux go build -v -a -installsuffix cgo -o kyma-app-conn-demo ./cmd/kyma-app-conn-demo
 
+FROM alpine:3.8 as certs
+RUN apk add -U --no-cache ca-certificates
+
 FROM scratch
 WORKDIR /app
-COPY --from=builder /app/kyma-app-conn-demo /app/
+
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /app /app/
 
 EXPOSE 8080
 ENTRYPOINT ["/app/kyma-app-conn-demo"]
