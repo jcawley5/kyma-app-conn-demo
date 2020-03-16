@@ -1,25 +1,15 @@
 package connector
 
-//RestConnector -
-type RestConnector struct {
-	CsrURL      string `json:"csrUrl"`
-	API         `json:"api"`
-	Certificate `json:"certificate"`
-	URLs        `json:"urls"`
+//REST API
+
+type restConnector struct {
+	CsrURL      string      `json:"csrUrl"`
+	API         api         `json:"api"`
+	Certificate certificate `json:"certificate"`
+	Urls        urls        `json:"urls"`
 }
 
-//GraphQLConnector -
-type GraphQLConnector struct {
-	ConnectorURL          string                    `json:"connectorURL"`
-	Token                 string                    `json:"token"`
-	GraphQLAPIResp        GraphQLAPI                `json:"data"`
-	Certificate           Certificate               `json:"certificate"`
-	CSRConnectGraphQLResp CSRConnectGraphQLResponse `json:"data"`
-	AppID                 AppID                     `json:"data"`
-}
-
-//API -
-type API struct {
+type api struct {
 	EventsInfoURL   string `json:"eventsInfoUrl"`
 	EventsURL       string `json:"eventsUrl"`
 	MetadataURL     string `json:"metadataUrl"`
@@ -27,13 +17,11 @@ type API struct {
 	CertificatesURL string `json:"certificatesUrl"`
 }
 
-//ClientIdentity -
-type ClientIdentity struct {
+type clientIdentity struct {
 	Application string `json:"application"`
 }
 
-//URLs -
-type URLs struct {
+type urls struct {
 	MetadataURL   string `json:"metadataUrl"`
 	EventsURL     string `json:"eventsUrl"`
 	RenewCertURL  string `json:"renewCertUrl"`
@@ -41,35 +29,39 @@ type URLs struct {
 }
 
 //Certificate -
-type Certificate struct {
+type certificate struct {
 	Subject      string `json:"subject"`
 	Extensions   string `json:"extensions"`
 	KeyAlgorithm string `json:"key-algorithm"`
 }
 
 //CSRConnectResponse contains crt for tls communication
-type CSRConnectResponse struct {
+type csrConnectResponse struct {
 	Crt       string `json:"crt"`
 	ClientCrt string `json:"clientCrt"`
 	CaCrt     string `json:"caCrt"`
 }
 
-//CSRConnectGraphQLResponse -
-type CSRConnectGraphQLResponse struct {
-	Result struct {
-		CertificateChain  string `json:"certificateChain"`
-		CaCertificate     string `json:"caCertificate"`
-		ClientCertificate string `json:"clientCertificate"`
-	} `json:"result"`
+//GRAPHQL API
+
+//GraphQLConnector -
+type graphQLConnector struct {
+	ConnectorURL          string                    `json:"connectorURL"`
+	Token                 string                    `json:"token"`
+	GraphQLAPIResp        graphQLAPI                `json:"data"`
+	Certificate           certificate               `json:"certificate"`
+	CsrConnectGraphQLResp csrConnectGraphQLResponse `json:"data"`
+	AppID                 appID                     `json:"data"`
+	EventsURL             eventsURL                 `json:"data"`
 }
 
 //GraphQLAPI -
-type GraphQLAPI struct {
+type graphQLAPI struct {
 	Result struct {
 		Token struct {
 			Token string `json:"token"`
 		} `json:"token"`
-		CertificateSigningRequestInfo `json:"certificateSigningRequestInfo"`
+		CertificateSigningRequestInfo certificateSigningRequestInfo `json:"certificateSigningRequestInfo"`
 		ManagementPlaneInfo           struct {
 			DirectorURL                    string `json:"directorURL"`
 			CertificateSecuredConnectorURL string `json:"certificateSecuredConnectorURL"`
@@ -78,15 +70,39 @@ type GraphQLAPI struct {
 }
 
 //CertificateSigningRequestInfo -
-type CertificateSigningRequestInfo struct {
+type certificateSigningRequestInfo struct {
 	Subject      string `json:"subject"`
 	KeyAlgorithm string `json:"keyAlgorithm"`
 }
 
+//CSRConnectGraphQLResponse -
+type csrConnectGraphQLResponse struct {
+	Result struct {
+		CertificateChain  string `json:"certificateChain"`
+		CaCertificate     string `json:"caCertificate"`
+		ClientCertificate string `json:"clientCertificate"`
+	} `json:"result"`
+}
+
 //AppID -
-type AppID struct {
+type appID struct {
 	Viewer struct {
-		ID   string `json:"id"`
-		Type string `json:"type"`
+		ID         string `json:"id"`
+		ViewerType string `json:"type"`
 	} `json:"viewer"`
+}
+
+//EventsURL -
+type eventsURL struct {
+	Application struct {
+		EventingConfiguration struct {
+			DefaultURL string `json:"defaultURL"`
+		} `json:"eventingConfiguration"`
+	} `json:"application"`
+}
+
+type specDefinitionResp struct {
+	Result struct {
+		ID string `json:"id"`
+	} `json:"result"`
 }

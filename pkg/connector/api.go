@@ -15,6 +15,10 @@ import (
 	"github.com/jcawley/kyma-app-connector/pkg/utils"
 )
 
+type kymaTLSClient interface {
+	getTLSClient()
+}
+
 //Connector -
 type Connector interface {
 	callTokenURL(string) ([]byte, error)
@@ -55,18 +59,17 @@ func init() {
 	config = &apiConfig{}
 	config.ConnectionStatus = notConnected
 	config.setAssetsDir()
-	// _ = config.setTLSClient()
 }
 
 //will generate a rest or graphql connection based on the tokenData
 func initConnectionType(appType string) {
 
 	if appType == appTypeGraphQL {
-		config.kc = &GraphQLConnector{}
+		config.kc = &graphQLConnector{}
 		config.ConnectionType = appTypeGraphQL
 		config.KeyLength = 4096
 	} else {
-		config.kc = &RestConnector{}
+		config.kc = &restConnector{}
 		config.ConnectionType = appTypeRest
 		config.KeyLength = 2048
 	}
@@ -103,7 +106,7 @@ func CallTokenURL(w http.ResponseWriter, r *http.Request) {
 	resp, err := config.kc.callTokenURL(tokenDataStr)
 
 	if err != nil {
-		utils.ReturnError("Could not call the Token URL", w)
+		utils.ReturnError(err.Error(), w)
 	} else {
 		utils.ReturnSuccess(string(resp), w)
 	}

@@ -17,7 +17,7 @@ func init() {
 }
 
 //CallTokenURL - STEP 1
-func (KymaConn *GraphQLConnector) callTokenURL(tokenData string) ([]byte, error) {
+func (KymaConn *graphQLConnector) callTokenURL(tokenData string) ([]byte, error) {
 	log.Println("GraphQLConnector callTokenURL")
 
 	tokenDataDecoded, err := base64.StdEncoding.DecodeString(tokenData)
@@ -63,7 +63,7 @@ func (KymaConn *GraphQLConnector) callTokenURL(tokenData string) ([]byte, error)
 }
 
 //SendCSRToKyma - STEP 2
-func (KymaConn *GraphQLConnector) sendCSRToKyma(csr []byte) ([]byte, error) {
+func (KymaConn *graphQLConnector) sendCSRToKyma(csr []byte) ([]byte, error) {
 	log.Println("SendCSRToKyma via via graphql...")
 
 	client := graphql.NewClient(KymaConn.ConnectorURL)
@@ -87,20 +87,36 @@ func (KymaConn *GraphQLConnector) sendCSRToKyma(csr []byte) ([]byte, error) {
 
 	// run it and capture the response
 	// csrRespData := &CSRConnectGraphQLResponse{}
-	if err := client.Run(ctx, req, &KymaConn.CSRConnectGraphQLResp); err != nil {
+	if err := client.Run(ctx, req, &KymaConn.CsrConnectGraphQLResp); err != nil {
 		return nil, err
 	}
 
 	// log.Println("GraphQLAPI Result..............")
 	fmt.Printf("%+v\n", KymaConn)
 
-	return []byte(KymaConn.CSRConnectGraphQLResp.Result.CertificateChain), nil
+	return []byte(KymaConn.CsrConnectGraphQLResp.Result.CertificateChain), nil
 }
 
 //GetAppInfo -
-func (KymaConn *GraphQLConnector) getAppInfo(TLSClient *http.Client) ([]byte, error) {
+func (KymaConn *graphQLConnector) getAppInfo(TLSClient *http.Client) ([]byte, error) {
 
 	client := graphql.NewClient(KymaConn.GraphQLAPIResp.Result.ManagementPlaneInfo.DirectorURL, graphql.WithHTTPClient(TLSClient))
+
+	err := KymaConn.getAppID(client)
+	if err != nil {
+		return nil, err
+	}
+
+	err = KymaConn.getEventsURL(client)
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(fmt.Sprintf("{AppID: %s, EventsURL: %s}", KymaConn.AppID.Viewer.ID, KymaConn.EventsURL.Application.EventingConfiguration.DefaultURL)), nil
+
+}
+
+func (KymaConn *graphQLConnector) getAppID(client *graphql.Client) error {
 
 	req := graphql.NewRequest(`
 		query {
@@ -114,22 +130,39 @@ func (KymaConn *GraphQLConnector) getAppInfo(TLSClient *http.Client) ([]byte, er
 	ctx := context.Background()
 
 	if err := client.Run(ctx, req, &KymaConn.AppID); err != nil {
-		return nil, err
+		return err
 	}
 	fmt.Printf("%+v\n", KymaConn)
 
-	return []byte(fmt.Sprintf("{AppID: %s}", KymaConn.AppID.Viewer.ID)), nil
+	return nil
 
 }
 
-type specDefinitionResp struct {
-	Result struct {
-		ID string `json:"id"`
-	} `json:"result"`
+func (KymaConn *graphQLConnector) getEventsURL(client *graphql.Client) error {
+	req := graphql.NewRequest(`
+	query($appId: ID!) {
+		application (id : $appId){
+		  eventingConfiguration{
+			defaultURL
+		  }
+		}
+	  }
+	`)
+
+	req.Var("appId", KymaConn.AppID.Viewer.ID)
+
+	ctx := context.Background()
+
+	if err := client.Run(ctx, req, &KymaConn.EventsURL); err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", KymaConn)
+
+	return nil
 }
 
 //SendEventSpec -
-func (KymaConn *GraphQLConnector) sendEventSpec(TLSClient *http.Client, eventSpec []byte) ([]byte, error) {
+func (KymaConn *graphQLConnector) sendEventSpec(TLSClient *http.Client, eventSpec []byte) ([]byte, error) {
 	log.Println("SendEventMetadata via graphql...")
 
 	if KymaConn.AppID.Viewer.ID == "" {
@@ -173,7 +206,7 @@ func (KymaConn *GraphQLConnector) sendEventSpec(TLSClient *http.Client, eventSpe
 }
 
 //SendAPISpec -
-func (KymaConn *GraphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []byte, hostURL []byte) ([]byte, error) {
+func (KymaConn *graphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []byte, hostURL []byte) ([]byte, error) {
 
 	log.Println("SendAPIMetadata via graphql...")
 
@@ -184,7 +217,7 @@ func (KymaConn *GraphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []
 	client := graphql.NewClient(KymaConn.GraphQLAPIResp.Result.ManagementPlaneInfo.DirectorURL, graphql.WithHTTPClient(TLSClient))
 
 	req := graphql.NewRequest(`
-	mutation ($appID: ID!, $apiSpec: CLOB!, $hostURL String!){
+	mutation ($appID: ID!, $apiSpec: CLOB!, $hostURL: String!){
 		result: addAPIDefinition(
 		  	applicationID: $appID
 		  	in: {
@@ -232,14 +265,14 @@ func (KymaConn *GraphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []
 	return []byte(fmt.Sprintf("{ID: %s}", specDefResp.Result.ID)), nil
 }
 
-func (KymaConn *GraphQLConnector) getCertificateSubject() string {
+func (KymaConn *graphQLConnector) getCertificateSubject() string {
 	log.Println("GetCertificateSubject")
 
 	return KymaConn.GraphQLAPIResp.Result.CertificateSigningRequestInfo.Subject
 }
 
-func (KymaConn *GraphQLConnector) getEventURL() string {
+func (KymaConn *graphQLConnector) getEventURL() string {
 	log.Println("getEventURL via graphql")
 
-	return KymaConn.GraphQLAPIResp.Result.ManagementPlaneInfo.DirectorURL
+	return KymaConn.EventsURL.Application.EventingConfiguration.DefaultURL
 }

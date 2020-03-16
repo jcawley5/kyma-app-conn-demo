@@ -66,11 +66,12 @@
           "get": {
             "parameters": [
               {
-                "in": "path",
                 "name": "orderCode",
+                "in": "path",
                 "required": true,
+                "description": "The orderCode to retrieve",
                 "schema": {
-                  "$ref": "#/components/schemas/OrderList"
+                  "type": "string"
                 }
               }
             ],

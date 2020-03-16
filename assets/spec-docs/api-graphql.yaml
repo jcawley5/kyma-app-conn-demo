@@ -38,17 +38,18 @@ paths:
   /orders/{orderCode}:
     get:
       parameters:
-        - in: path
-          name: orderCode
+        - name: orderCode
+          in: path
           required: true
+          description: The orderCode to retrieve
           schema:
-            $ref: "#/components/schemas/OrderList"
+            type: string
       description: Retrieve a single order.
       tags:
         - orders
       responses:
         "200":
-          description: Orders retrieved succesfully.
+          description: Order retrieved succesfully.
           content:
             application/json:
               schema:
