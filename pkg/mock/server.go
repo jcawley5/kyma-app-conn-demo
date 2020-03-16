@@ -3,9 +3,11 @@ package mock
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -27,6 +29,8 @@ func init() {
 //GetOrders -
 func GetOrders(w http.ResponseWriter, r *http.Request) {
 
+	printReqData(r)
+
 	js, err := json.Marshal(orders)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -39,11 +43,10 @@ func GetOrders(w http.ResponseWriter, r *http.Request) {
 
 //GetOrder -
 func GetOrder(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	// w.WriteHeader(http.StatusOK)
-	// fmt.Fprintf(w, "ID: %v\n", vars["id"])
 
-	// sort.SearchStrings(orders, "A")
+	printReqData(r)
+
+	vars := mux.Vars(r)
 
 	id := vars["id"]
 	idx := sort.Search(len(orders), func(i int) bool {
@@ -65,6 +68,9 @@ func GetOrder(w http.ResponseWriter, r *http.Request) {
 
 //PostOrders -
 func PostOrders(w http.ResponseWriter, r *http.Request) {
+
+	printReqData(r)
+
 	defer r.Body.Close()
 	orderData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -100,4 +106,19 @@ func AddOrderFromEvent(orderCode string) {
 	rand.Float64()
 	order.Total = float64(rand.Intn(max-min+1)+min) + .99
 	orders = append(orders, order)
+}
+
+//print the user/pass and headers in the logs
+func printReqData(r *http.Request) {
+	// print basic auth...
+	user, pass, _ := r.BasicAuth()
+	log.Printf("user: %s pass: %s", user, pass)
+
+	// print headers...
+	for name, headers := range r.Header {
+		name = strings.ToLower(name)
+		for _, h := range headers {
+			log.Printf("%v: %v", name, h)
+		}
+	}
 }

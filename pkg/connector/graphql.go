@@ -176,7 +176,7 @@ func (KymaConn *graphQLConnector) sendEventSpec(TLSClient *http.Client, eventSpe
 		result: addEventDefinition(
 		  	applicationID: $appID
 		  	in: {
-				name: "sample-app-event"
+				name: "Sample Order Event - MP"
 				spec: {
 			  		type: ASYNC_API
 			  		format: YAML
@@ -221,7 +221,7 @@ func (KymaConn *graphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []
 		result: addAPIDefinition(
 		  	applicationID: $appID
 		  	in: {
-				name: "sample-app-api"
+				name: "Sample Order API - MP"
 				targetURL: $hostURL
 				spec: {
 			  		type: OPEN_API
@@ -234,14 +234,14 @@ func (KymaConn *graphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []
 							username: "user"
 							password: "password"
 						}
-					},
+					},				
 					additionalHeaders: {
 						header1: ["header1value"]
 					},
 					additionalQueryParams: {
 						query1: ["query1value"]
-					}
-				} 	
+					} 	
+				}
 			}
 		){
 			id

@@ -1,6 +1,6 @@
 {
   "provider": "Sample",
-  "name": "Sample Order API",
+  "name": "Sample Order API - Kyma",
   "description": "Order API",
   "labels": {
     "example": "SampleOrderAPI"
@@ -127,14 +127,9 @@
     "requestParameters": {
       "queryParameters": {},
       "headers": {
-        "Content-Type": ["application/json"]
+        "Content-Type": ["application/json"],
+        "CustomHeader": ["customvalue"]
       }
-    },
-    "queryParameters": {
-      "query1": ["query1value"]
-    },
-    "headers": {
-      "header1": ["header1value"]
     },
     "credentials": {
       "basic": {
