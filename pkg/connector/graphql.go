@@ -188,8 +188,8 @@ func (KymaConn *graphQLConnector) createPackage(client *graphql.Client) error {
 	`)
 
 	PackageInputJSON := `{
-			"name":"test", 
-			"description": "test", 
+			"name":"comm-demo-pkg", 
+			"description": "Kyma Comm Demo App Package", 
 			"defaultInstanceAuth" : {
 				"credential": {
 					"basic": {
