@@ -53,6 +53,7 @@ type graphQLConnector struct {
 	CsrConnectGraphQLResp csrConnectGraphQLResponse `json:"data"`
 	AppID                 appID                     `json:"data"`
 	EventsURL             eventsURL                 `json:"data"`
+	PackageID             definitionResp            `json:"data"`
 }
 
 //GraphQLAPI -
@@ -101,7 +102,7 @@ type eventsURL struct {
 	} `json:"application"`
 }
 
-type specDefinitionResp struct {
+type definitionResp struct {
 	Result struct {
 		ID string `json:"id"`
 	} `json:"result"`

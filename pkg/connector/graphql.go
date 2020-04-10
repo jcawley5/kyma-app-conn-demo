@@ -97,10 +97,13 @@ func (KymaConn *graphQLConnector) sendCSRToKyma(csr []byte) ([]byte, error) {
 	return []byte(KymaConn.CsrConnectGraphQLResp.Result.CertificateChain), nil
 }
 
-//GetAppInfo -
+//GetAppInfo -  STEP 3
+//Gets appid, eventsurl
 func (KymaConn *graphQLConnector) getAppInfo(TLSClient *http.Client) ([]byte, error) {
 
 	client := graphql.NewClient(KymaConn.GraphQLAPIResp.Result.ManagementPlaneInfo.DirectorURL, graphql.WithHTTPClient(TLSClient))
+
+	//client.Log = func(s string) { log.Println(s) }
 
 	err := KymaConn.getAppID(client)
 	if err != nil {
@@ -112,10 +115,16 @@ func (KymaConn *graphQLConnector) getAppInfo(TLSClient *http.Client) ([]byte, er
 		return nil, err
 	}
 
-	return []byte(fmt.Sprintf("{AppID: %s, EventsURL: %s}", KymaConn.AppID.Viewer.ID, KymaConn.EventsURL.Application.EventingConfiguration.DefaultURL)), nil
+	err = KymaConn.createPackage(client)
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(fmt.Sprintf("{AppID: %s, PackageID: %s, EventsURL: %s}", KymaConn.AppID.Viewer.ID, KymaConn.PackageID.Result.ID, KymaConn.EventsURL.Application.EventingConfiguration.DefaultURL)), nil
 
 }
 
+//getAppID -  STEP 3a
 func (KymaConn *graphQLConnector) getAppID(client *graphql.Client) error {
 
 	req := graphql.NewRequest(`
@@ -138,6 +147,7 @@ func (KymaConn *graphQLConnector) getAppID(client *graphql.Client) error {
 
 }
 
+//getEventsURL -  STEP 3b
 func (KymaConn *graphQLConnector) getEventsURL(client *graphql.Client) error {
 	req := graphql.NewRequest(`
 	query($appId: ID!) {
@@ -161,6 +171,62 @@ func (KymaConn *graphQLConnector) getEventsURL(client *graphql.Client) error {
 	return nil
 }
 
+//createPackage -  STEP 3c
+func (KymaConn *graphQLConnector) createPackage(client *graphql.Client) error {
+	log.Println("createPackage via graphql...")
+	log.Println(KymaConn.AppID.Viewer.ID)
+
+	req := graphql.NewRequest(`
+	mutation ($appID: ID!, $payload: PackageCreateInput!){
+		result: addPackage(
+			applicationID: $appID
+			in: $payload  
+		  ){
+			id
+		  }
+		}
+	`)
+
+	PackageInputJSON := `{
+			"name":"test", 
+			"description": "test", 
+			"defaultInstanceAuth" : {
+				"credential": {
+					"basic": {
+						"username": "user",
+						"password": "password"
+					}
+				},
+				"additionalHeaders": {
+					"header1": ["header1value"]
+				},
+				"additionalQueryParams": {
+					"query1": ["query1value"]
+				}
+			}
+	}`
+	PackageInput := make(map[string]interface{})
+
+	if err := json.Unmarshal([]byte(PackageInputJSON), &PackageInput); err != nil {
+		fmt.Printf(err.Error())
+		return err
+	}
+
+	req.Var("appID", KymaConn.AppID.Viewer.ID)
+	req.Var("payload", &PackageInput)
+
+	ctx := context.Background()
+
+	if err := client.Run(ctx, req, &KymaConn.PackageID); err != nil {
+		fmt.Printf(err.Error())
+		return err
+	}
+	fmt.Printf("%+v\n", KymaConn)
+
+	return nil
+
+}
+
 //SendEventSpec -
 func (KymaConn *graphQLConnector) sendEventSpec(TLSClient *http.Client, eventSpec []byte) ([]byte, error) {
 	log.Println("SendEventMetadata via graphql...")
@@ -172,9 +238,9 @@ func (KymaConn *graphQLConnector) sendEventSpec(TLSClient *http.Client, eventSpe
 	client := graphql.NewClient(KymaConn.GraphQLAPIResp.Result.ManagementPlaneInfo.DirectorURL, graphql.WithHTTPClient(TLSClient))
 
 	req := graphql.NewRequest(`
-	mutation ($appID: ID!, $eventSpec: CLOB!){
-		result: addEventDefinition(
-		  	applicationID: $appID
+	mutation ($packageID: ID!, $eventSpec: CLOB!){
+		result: addEventDefinitionToPackage(
+			packageID: $packageID
 		  	in: {
 				name: "Sample Order Event - MP"
 				spec: {
@@ -189,10 +255,10 @@ func (KymaConn *graphQLConnector) sendEventSpec(TLSClient *http.Client, eventSpe
 		}
 	`)
 
-	req.Var("appID", KymaConn.AppID.Viewer.ID)
+	req.Var("packageID", KymaConn.PackageID.Result.ID)
 	req.Var("eventSpec", string(eventSpec))
 
-	var specDefResp specDefinitionResp
+	var specDefResp definitionResp
 
 	ctx := context.Background()
 
@@ -217,9 +283,9 @@ func (KymaConn *graphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []
 	client := graphql.NewClient(KymaConn.GraphQLAPIResp.Result.ManagementPlaneInfo.DirectorURL, graphql.WithHTTPClient(TLSClient))
 
 	req := graphql.NewRequest(`
-	mutation ($appID: ID!, $apiSpec: CLOB!, $hostURL: String!){
-		result: addAPIDefinition(
-		  	applicationID: $appID
+	mutation ($packageID: ID!, $apiSpec: CLOB!, $hostURL: String!){
+		result: addAPIDefinitionToPackage(
+			packageID: $packageID
 		  	in: {
 				name: "Sample Order API - MP"
 				targetURL: $hostURL
@@ -227,20 +293,6 @@ func (KymaConn *graphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []
 			  		type: OPEN_API
 			  		format: YAML
 			  		data: $apiSpec
-				},
-				defaultAuth: {
-					credential: {
-						basic: {
-							username: "user"
-							password: "password"
-						}
-					},				
-					additionalHeaders: {
-						header1: ["header1value"]
-					},
-					additionalQueryParams: {
-						query1: ["query1value"]
-					} 	
 				}
 			}
 		){
@@ -249,11 +301,11 @@ func (KymaConn *graphQLConnector) sendAPISpec(TLSClient *http.Client, apiSpec []
 		}
 	`)
 
-	req.Var("appID", KymaConn.AppID.Viewer.ID)
+	req.Var("packageID", KymaConn.PackageID.Result.ID)
 	req.Var("apiSpec", string(apiSpec))
 	req.Var("hostURL", string(hostURL))
 
-	var specDefResp specDefinitionResp
+	var specDefResp definitionResp
 
 	ctx := context.Background()
 
