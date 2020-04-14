@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"sort"
 	"strings"
 	"time"
 
@@ -46,15 +45,19 @@ func GetOrder(w http.ResponseWriter, r *http.Request) {
 
 	printReqData(r)
 
+	idx := -1
 	vars := mux.Vars(r)
-
 	id := vars["id"]
-	idx := sort.Search(len(orders), func(i int) bool {
-		return string(orders[i].OrderCode) >= id
-	})
+
+	for i := range orders {
+		if orders[i].OrderCode == id {
+			idx = i
+			break
+		}
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if orders[idx].OrderCode == id {
+	if idx != -1 {
 		js, err := json.Marshal(orders[idx])
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -64,6 +67,7 @@ func GetOrder(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte("{}"))
 	}
+
 }
 
 //PostOrders -
@@ -110,7 +114,7 @@ func AddOrderFromEvent(orderCode string) {
 
 //print the user/pass and headers in the logs
 func printReqData(r *http.Request) {
-	// print basic auth...
+	log.Println("Printing request data...")
 	user, pass, _ := r.BasicAuth()
 	log.Printf("user: %s pass: %s", user, pass)
 
@@ -121,4 +125,6 @@ func printReqData(r *http.Request) {
 			log.Printf("%v: %v", name, h)
 		}
 	}
+
+	log.Println("Received query params:", r.URL.Query())
 }

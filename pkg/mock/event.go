@@ -47,13 +47,11 @@ func SendOrderCreatedEvent(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := client.Post(eventURL, "application/json", bytes.NewBuffer(eventBytes))
 
-	defer resp.Body.Close()
-	respBody, _ := ioutil.ReadAll(resp.Body)
-
 	if err != nil {
 		utils.ReturnError(err.Error(), w)
 	} else {
-		// evtTxt, _ := json.Marshal(eventMessage)
+		defer resp.Body.Close()
+		respBody, _ := ioutil.ReadAll(resp.Body)
 		AddOrderFromEvent(string(orderCode))
 		utils.ReturnSuccess(string(respBody), w)
 	}
