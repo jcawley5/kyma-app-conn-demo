@@ -97,6 +97,9 @@ func (KymaConn *restConnector) sendAPISpec(TLSClient *http.Client, APISpec []byt
 
 	json, err := sjson.Set(string(APISpec), "api.targetUrl", string(hostURL))
 
+	log.Println("...........")
+	log.Println(json)
+
 	if err != nil {
 		return nil, err
 	}

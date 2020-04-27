@@ -125,10 +125,11 @@
       }
     },
     "requestParameters": {
-      "queryParameters": {},
       "headers": {
-        "Content-Type": ["application/json"],
         "CustomHeader": ["customvalue"]
+      },
+      "queryParameters": {
+        "qp1": ["qp1Value"]
       }
     },
     "credentials": {

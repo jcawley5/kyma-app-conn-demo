@@ -40,14 +40,33 @@ spec:
             - name: http
               containerPort: 8000
 ---
-apiVersion: gateway.kyma-project.io/v1alpha2
-kind: Api
+# apiVersion: gateway.kyma-project.io/v1alpha2
+# kind: Api
+# metadata:
+#   name: kyma-app-conn-demo
+#   labels:
+#     app: kyma-app-conn-demo
+# spec:
+#   hostname: kyma-app-conn-demo
+#   service:
+#     name: kyma-app-conn-demo
+#     port: 80
+apiVersion: gateway.kyma-project.io/v1alpha1
+kind: APIRule
 metadata:
   name: kyma-app-conn-demo
-  labels:
-    app: kyma-app-conn-demo
 spec:
-  hostname: kyma-app-conn-demo
+  gateway: kyma-gateway.kyma-system.svc.cluster.local
+  rules:
+    - path: /.*
+      accessStrategies:
+        - config: {}
+          handler: noop
+      methods:
+        - GET
+        - POST
   service:
+    #host property to be removed... https://github.com/kyma-incubator/api-gateway/pull/95
+    host: kyma-app-conn-demo.< cluster domain >
     name: kyma-app-conn-demo
     port: 80
