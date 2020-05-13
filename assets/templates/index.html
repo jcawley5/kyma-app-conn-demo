@@ -14,8 +14,8 @@
         method: "POST",
         body: myBody, // string or object
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
       const resp = await response.json();
       busyIndicator.style.display = "none";
